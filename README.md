@@ -1,6 +1,3 @@
-# Driver_Behaviour_Detection
-Deep learning project for distracted driver behaviour classification using PyTorch. Implements custom CNNs and ResNet18 with driver-aware data splitting, achieving 95.5% test accuracy and deployment through a Flask web application.
-
 # Driver Behaviour Detection Using Deep Learning
 
 A computer vision project that detects distracted driver behaviour from images using deep learning. The project compares three custom Convolutional Neural Networks (CNNs) with a fine-tuned ResNet18 model to identify the most effective approach for driver behaviour classification.
