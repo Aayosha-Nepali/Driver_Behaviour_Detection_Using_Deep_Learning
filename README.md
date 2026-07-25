@@ -118,9 +118,9 @@ A ResNet18 model pre-trained on ImageNet and fine-tuned on the driver behaviour 
 ## Installation
 
 ```bash
-git clone https://github.com/yourusername/driver-behaviour-detection.git
+git clone https://github.com/Aayosha-Nepali/driver-behaviour-detection-using-deep-learning.git
 
-cd driver-behaviour-detection
+cd driver-behaviour-detection-using-deep-learning
 
 pip install torch torchvision pandas numpy matplotlib seaborn scikit-learn pillow flask ipywidgets
 ```
