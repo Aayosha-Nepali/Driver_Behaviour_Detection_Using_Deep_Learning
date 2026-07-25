@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Driver Behaviour Detection</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg:           #080810;
+    --surface:      #0e0e18;
+    --surface2:     #14141f;
+    --border:       #ffffff0a;
+    --border2:      #ffffff18;
+    --accent:       #3b82f6;
+    --accent-dim:   #3b82f618;
+    --accent-hover: #2563eb;
+    --text:         #ffffff;
+    --text-sub:     #a0a0b8;
+    --text-dim:     #606078;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrapper { min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 48px;
+    height: 60px;
+    border-bottom: 1px solid var(--border2);
+    background: var(--surface);
+  }
+
+  .nav-left { display: flex; align-items: center; gap: 18px; }
+
+  .nav-logo {
+    font-size: 15px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .nav-divider { width: 1px; height: 18px; background: var(--border2); }
+
+  .nav-sub {
+    font-size: 12px;
+    font-weight: 500;
+    color: #a0a0b8;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+  }
+
+  .nav-pill {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-dim);
+    border: 1px solid #3b82f630;
+    border-radius: 4px;
+    padding: 5px 12px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+
+  /* MAIN */
+  .main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    max-width: 1160px;
+    width: calc(100% - 96px);
+    margin: 52px auto;
+    border: 1px solid var(--border2);
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--border);
+    gap: 1px;
+  }
+
+  .pane { background: var(--surface); padding: 40px; }
+
+  .pane-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #606078;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 28px;
+  }
+
+  /* DROPZONE */
+  .dropzone {
+    position: relative;
+    border: 1px dashed var(--border2);
+    border-radius: 12px;
+    background: var(--surface2);
+    height: 340px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    overflow: hidden;
+  }
+
+  .dropzone:hover    { border-color: #3b82f650; background: #10101c; }
+  .dropzone.dragover { border-color: var(--accent); background: #0c0f1e; }
+
+  .dropzone input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  .drop-hint {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    pointer-events: none;
+  }
+
+  .drop-icon-wrap {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 6px;
+  }
+
+  .drop-icon-wrap svg {
+    width: 24px;
+    height: 24px;
+    stroke: #a0a0b8;
+    fill: none;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .drop-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: #ffffff;
+    letter-spacing: -0.3px;
+  }
+
+  .drop-sub {
+    font-size: 12px;
+    font-weight: 500;
+    color: #a0a0b8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  #preview {
+    display: none;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 11px;
+    background: var(--surface2);
+    padding: 8px;
+  }
+
+  /* BUTTONS */
+  .btn-row { display: flex; gap: 10px; margin-top: 16px; }
+
+  .btn {
+    height: 46px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn:active { transform: scale(0.98); }
+
+  .btn-primary { flex: 1; background: var(--accent); color: #fff; }
+  .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+  .btn-primary:disabled {
+    background: var(--surface2);
+    color: #606078;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .btn-primary svg {
+    width: 15px; height: 15px;
+    stroke: currentColor; fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  }
+
+  .btn-secondary {
+    width: 46px;
+    background: var(--surface2);
+    color: #a0a0b8;
+    border: 1px solid var(--border2);
+  }
+
+  .btn-secondary:hover { background: #1c1c28; color: #ffffff; }
+
+  .btn-secondary svg {
+    width: 16px; height: 16px;
+    stroke: currentColor; fill: none;
+    stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+  }
+
+  #status {
+    font-size: 12px;
+    font-weight: 500;
+    color: #a0a0b8;
+    margin-top: 14px;
+    text-align: center;
+    min-height: 18px;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+
+  /* RESULTS */
+  .result-empty {
+    font-size: 14px;
+    font-weight: 400;
+    color: #606078;
+    font-style: italic;
+    padding: 12px 0 28px;
+  }
+
+  .result-class {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: -1px;
+    line-height: 1.1;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .result-meta { display: flex; align-items: baseline; gap: 10px; }
+
+  .result-conf-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .result-conf-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #a0a0b8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .divider { height: 1px; background: var(--border2); margin: 32px 0; }
+
+  /* BARS */
+  .top3-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .top3-header svg {
+    width: 14px; height: 14px;
+    stroke: #606078; fill: none;
+    stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+  }
+
+  .top3-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #606078;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .bar-item { margin-bottom: 22px; }
+
+  .bar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 9px;
+  }
+
+  .bar-rank {
+    font-size: 11px;
+    font-weight: 600;
+    color: #606078;
+    margin-right: 10px;
+    letter-spacing: 0.5px;
+  }
+
+  .bar-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .bar-name.empty { color: #606078; font-weight: 400; }
+
+  .bar-pct {
+    font-size: 13px;
+    font-weight: 600;
+    color: #a0a0b8;
+  }
+
+  .bar-track {
+    height: 4px;
+    background: var(--surface2);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    width: 0%;
+    transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .bar-fill.r1 { background: #3b82f6; }
+  .bar-fill.r2 { background: #2563eb; }
+  .bar-fill.r3 { background: #1d4ed8; }
+
+  /* SPINNER */
+  .spinner {
+    display: none;
+    width: 15px; height: 15px;
+    border: 2px solid #ffffff25;
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #606078;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <div class="nav-left">
+      <span class="nav-logo">Driver Behaviour Detection</span>
+      <div class="nav-divider"></div>
+      <span class="nav-sub">CT6057NI Computer Vision</span>
+    </div>
+    <span class="nav-pill">ResNet18 &nbsp;·&nbsp; 4 Classes</span>
+  </header>
+
+  <div class="main">
+
+    <!-- LEFT -->
+    <div class="pane">
+      <p class="pane-label">Input Image</p>
+
+      <div class="dropzone" id="dropzone">
+        <input type="file" id="file-input" accept=".jpg,.jpeg,.png" />
+        <img id="preview" src="" alt="preview" />
+        <div class="drop-hint" id="drop-hint">
+          <div class="drop-icon-wrap">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <div class="drop-title">Drop Image Here</div>
+          <div class="drop-sub">Click to Browse &nbsp;·&nbsp; JPG &nbsp;·&nbsp; PNG</div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="predict-btn" disabled>
+          <div class="spinner" id="spinner"></div>
+          <svg id="predict-icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span id="btn-label">Run Prediction</span>
+        </button>
+        <button class="btn btn-secondary" id="clear-btn" title="Clear">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        </button>
+      </div>
+      <div id="status">Upload an image to get started</div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="pane">
+      <p class="pane-label">Results</p>
+
+      <div id="result-block">
+        <p class="result-empty">Prediction will appear here</p>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="top3-header">
+        <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        <span class="top3-label">Top 4 Predictions</span>
+      </div>
+
+      <div class="bar-item">
+        <div class="bar-header">
+          <div><span class="bar-rank">01</span><span class="bar-name empty" id="b1-name">—</span></div>
+          <span class="bar-pct" id="b1-pct"></span>
+        </div>
+        <div class="bar-track"><div class="bar-fill r1" id="b1-fill"></div></div>
+      </div>
+
+      <div class="bar-item">
+        <div class="bar-header">
+          <div><span class="bar-rank">02</span><span class="bar-name empty" id="b2-name">—</span></div>
+          <span class="bar-pct" id="b2-pct"></span>
+        </div>
+        <div class="bar-track"><div class="bar-fill r2" id="b2-fill"></div></div>
+      </div>
+
+      <div class="bar-item">
+        <div class="bar-header">
+          <div><span class="bar-rank">03</span><span class="bar-name empty" id="b3-name">—</span></div>
+          <span class="bar-pct" id="b3-pct"></span>
+        </div>
+        <div class="bar-track"><div class="bar-fill r3" id="b3-fill"></div></div>
+      </div>
+
+      <div class="bar-item">
+        <div class="bar-header">
+          <div><span class="bar-rank">04</span><span class="bar-name empty" id="b4-name">—</span></div>
+          <span class="bar-pct" id="b4-pct"></span>
+        </div>
+        <div class="bar-track"><div class="bar-fill r4" id="b4-fill"></div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>CT6057NI Computer Vision &nbsp;·&nbsp; Driver Behaviour Detection &nbsp;·&nbsp; ResNet18 Fine-Tuned</footer>
+
+</div>
+<script>
+  const fileInput   = document.getElementById("file-input");
+  const dropzone    = document.getElementById("dropzone");
+  const preview     = document.getElementById("preview");
+  const dropHint    = document.getElementById("drop-hint");
+  const predictBtn  = document.getElementById("predict-btn");
+  const clearBtn    = document.getElementById("clear-btn");
+  const btnLabel    = document.getElementById("btn-label");
+  const predictIcon = document.getElementById("predict-icon");
+  const spinner     = document.getElementById("spinner");
+  const status      = document.getElementById("status");
+  const resultBlock = document.getElementById("result-block");
+
+  let selectedFile = null;
+
+  dropzone.addEventListener("dragover", e => { e.preventDefault(); dropzone.classList.add("dragover"); });
+  dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
+  dropzone.addEventListener("drop", e => {
+    e.preventDefault();
+    dropzone.classList.remove("dragover");
+    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+
+  fileInput.addEventListener("change", () => {
+    if (fileInput.files[0]) handleFile(fileInput.files[0]);
+  });
+
+  function handleFile(file) {
+    selectedFile = file;
+    const reader = new FileReader();
+    reader.onload = e => {
+      preview.src = e.target.result;
+      preview.style.display = "block";
+      dropHint.style.display = "none";
+    };
+    reader.readAsDataURL(file);
+    predictBtn.disabled = false;
+    status.textContent = `Loaded: ${file.name}`;
+    resetResults();
+  }
+
+  clearBtn.addEventListener("click", () => {
+    selectedFile = null;
+    fileInput.value = "";
+    preview.style.display = "none";
+    preview.src = "";
+    dropHint.style.display = "flex";
+    predictBtn.disabled = true;
+    status.textContent = "Upload an image to get started";
+    resetResults();
+  });
+
+  predictBtn.addEventListener("click", async () => {
+    if (!selectedFile) return;
+
+    spinner.style.display = "block";
+    predictIcon.style.display = "none";
+    btnLabel.textContent = "Running...";
+    predictBtn.disabled = true;
+    status.textContent = "Running inference...";
+    resetResults();
+
+    const formData = new FormData();
+    formData.append("image", selectedFile);
+
+    try {
+      const res  = await fetch("/predict", { method: "POST", body: formData });
+      const data = await res.json();
+      if (data.error) { status.textContent = `Error: ${data.error}`; return; }
+
+      const preds = data.predictions;
+      const top   = preds[0];
+
+      resultBlock.innerHTML = `
+        <div class="result-class">${top.label}</div>
+        <div class="result-meta">
+          <span class="result-conf-value">${top.confidence}%</span>
+          <span class="result-conf-label">Confidence</span>
+        </div>
+      `;
+
+      const ids = ["b1", "b2", "b3", "b4"];
+      preds.forEach((p, i) => {
+        const nameEl = document.getElementById(`${ids[i]}-name`);
+        nameEl.textContent = p.label;
+        nameEl.classList.remove("empty");
+        document.getElementById(`${ids[i]}-pct`).textContent = `${p.confidence}%`;
+        setTimeout(() => {
+          document.getElementById(`${ids[i]}-fill`).style.width = `${p.confidence}%`;
+        }, 60 * i);
+      });
+
+      status.textContent = `Predicted: ${top.label.toUpperCase()} · ${top.confidence}% Confidence`;
+
+    } catch (err) {
+      status.textContent = "Error: Could not reach server";
+    } finally {
+      spinner.style.display = "none";
+      predictIcon.style.display = "block";
+      btnLabel.textContent = "Run Prediction";
+      predictBtn.disabled = false;
+    }
+  });
+
+  function resetResults() {
+    resultBlock.innerHTML = `<p class="result-empty">Prediction will appear here</p>`;
+    ["b1", "b2", "b3"].forEach(id => {
+      const n = document.getElementById(`${id}-name`);
+      n.textContent = "—";
+      n.classList.add("empty");
+      document.getElementById(`${id}-pct`).textContent = "";
+      document.getElementById(`${id}-fill`).style.width = "0%";
+    });
+  }
+</script>
+</body>
+</html>
